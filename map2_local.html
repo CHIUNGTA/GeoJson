@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <title>Vector Layer</title>
+    <link rel="stylesheet" href="https://openlayers.org/en/v4.6.5/css/ol.css" type="text/css">
+    <!-- The line below is only needed for old environments like Internet Explorer and Android 4.x -->
+    <script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=requestAnimationFrame,Element.prototype.classList,URL"></script>
+    <script src="https://openlayers.org/en/v4.6.5/build/ol.js"></script>
+  </head>
+  <body>
+  <form>
+    X:<input type="number" id="x"><br>
+	Y:<input type="number" id="y"><br>
+  </form>
+	<button type="button" id="selectBtn">Select</button>
+     <div id="map" class="map"></div> 
+    <div id="info">&nbsp;</div> 
+	
+	
+    <script>
+	
+	
+      var style = new ol.style.Style({
+        fill: new ol.style.Fill({
+          color: 'rgba(255, 255, 255, 0.6)'
+        }),
+        stroke: new ol.style.Stroke({
+          color: '#319FD3',
+          width: 1
+        }),
+        text: new ol.style.Text({
+          font: '12px Calibri,sans-serif',
+          fill: new ol.style.Fill({
+            color: '#000'
+          }),
+          stroke: new ol.style.Stroke({
+            color: '#fff',
+            width: 3
+          })
+        })
+      });
+
+      var vectorLayer = new ol.layer.Vector({
+        source: new ol.source.Vector({
+          format: new ol.format.GeoJSON(),
+          url: '../MAPCOORD/countries.geojson'
+        }),
+        style: function(feature) {
+          style.getText().setText(feature.get('NL_NAME_2'));
+          return style;
+        }
+      });
+
+      var map = new ol.Map({
+        layers: [  new ol.layer.Tile({source:new ol.source.OSM()}) ,vectorLayer], 
+		<!-- layers: [  new ol.layer.Tile({source:new ol.source.OSM()}) ], -->
+		target: 'map',
+        view: new ol.View({
+	      projection:'EPSG:4326',
+		  center: [0, 0],
+          zoom: 5
+        })
+      });
+
+      var highlightStyle = new ol.style.Style({
+        stroke: new ol.style.Stroke({
+          color: '#f00',
+          width: 1
+        }),
+        fill: new ol.style.Fill({
+          color: 'rgba(255,0,0,0.1)'
+        }),
+        text: new ol.style.Text({
+          font: '12px Calibri,sans-serif',
+          fill: new ol.style.Fill({
+            color: '#000'
+          }),
+          stroke: new ol.style.Stroke({
+            color: '#f00',
+            width: 3
+          })
+        })
+      });
+
+      var featureOverlay = new ol.layer.Vector({
+        source: new ol.source.Vector(),
+        map: map,
+        style: function(feature) {
+          highlightStyle.getText().setText(feature.get('name'));
+          return highlightStyle;
+        }
+      });
+
+      var highlight;
+      var displayFeatureInfo = function(pixel) {
+
+        var feature = map.forEachFeatureAtPixel(pixel, function(feature) {
+          return feature;
+        });
+
+        var info = document.getElementById('info');
+        if (feature) {
+		<!-- ShowData(pixel) -->
+          info.innerHTML = feature.getId() + ': ' + feature.get('name');
+        } else {
+		 <!-- ShowData(pixel); -->
+          info.innerHTML = '&nbsp;';
+        }
+
+        if (feature !== highlight) {
+          if (highlight) {
+            featureOverlay.getSource().removeFeature(highlight);
+          }
+          if (feature) {
+            featureOverlay.getSource().addFeature(feature);
+          }
+          highlight = feature;
+        }
+
+      };
+
+      map.on('pointermove', function(evt) {
+        if (evt.dragging) {
+          return;
+        }
+		var point =  map.getCoordinateFromPixel(evt.pixel)
+        var pixel = map.getEventPixel(evt.originalEvent);
+		var pix  =map.getPixelFromCoordinate(point)
+        displayFeatureInfo(pix);
+      });
+
+      map.on('click', function(evt) {
+		var point =  map.getCoordinateFromPixel(evt.pixel)
+		var pix  =map.getPixelFromCoordinate(point)
+	    displayFeatureInfo(evt.pixel);
+
+		ShowData(point)
+      });
+	  
+	  function ShowData(x){
+	  alert(x);
+	  }
+	  
+	  
+	  var btn = document.getElementById('selectBtn');
+
+	btn.onclick=function(){
+		coord = [parseFloat(document.getElementById("x").value),parseFloat(document.getElementById("y").value)]
+		var pix  =map.getPixelFromCoordinate(coord)
+	    TTTT(pix);
+		alert(document.getElementById("x").value)
+	}
+	
+	
+	var TTTT = function(pixel) {
+		var i = vectorLayer.getSource().getFeatures();
+		
+		
+		
+		
+        var feature = map.forEachFeatureAtPixel(pixel, function(feature) {
+          return feature;
+        });
+
+      
+        if (feature) {
+		
+          alert(feature.getId() + ':' + feature.get('name')) ;
+        } else {
+		 alert('Nothing');
+        }
+
+      };
+    </script>
+  </body>
+</html>

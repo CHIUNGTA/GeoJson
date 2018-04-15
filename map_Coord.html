@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <title>Vector Layer</title>
+    <link rel="stylesheet" href="https://openlayers.org/en/v4.6.5/css/ol.css" type="text/css">
+    <!-- The line below is only needed for old environments like Internet Explorer and Android 4.x -->
+    <script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=requestAnimationFrame,Element.prototype.classList,URL"></script>
+    <script src="https://openlayers.org/en/v4.6.5/build/ol.js"></script>
+  </head>
+  <body>
+      
+	<form>
+    X:<input type="number" id="x"><br>
+	Y:<input type="number" id="y"><br>
+    </form>
+	<button type="button" id="selectBtn">Select</button>
+	<div id="map" class="map"></div>
+    <div id="info">&nbsp;</div> 
+    <script>
+	
+	
+      var style = new ol.style.Style({
+        fill: new ol.style.Fill({
+          color: 'rgba(255, 255, 255, 0.6)'
+        }),
+        stroke: new ol.style.Stroke({
+          color: '#5ed230',
+          width: 1
+        }),
+        text: new ol.style.Text({
+          font: '12px Calibri,sans-serif',
+          fill: new ol.style.Fill({
+            color: '#000'
+          }),
+          stroke: new ol.style.Stroke({
+            color: '#fff',
+            width: 3
+          })
+        })
+      });
+
+      var vectorLayer = new ol.layer.Vector({
+        source: new ol.source.Vector({
+          url: 'https://openlayers.org/en/v4.6.5/examples/data/geojson/countries.geojson',
+          format: new ol.format.GeoJSON()
+        }),
+        style: function(feature) {
+          style.getText().setText(feature.get('name'));
+          return style;
+        }
+      });
+
+      var map = new ol.Map({
+        layers: [vectorLayer],
+		target: 'map',
+        view: new ol.View({
+	      projection:'EPSG:4326',
+		  center: [0, 0],
+          zoom: 0
+        })
+      });
+	  var btn = document.getElementById('selectBtn');
+
+		btn.onclick=function(){
+		coord = [parseFloat(document.getElementById("x").value),parseFloat(document.getElementById("y").value)]
+		
+	    SelectByCoord(coord);
+	}
+	
+	
+	var SelectByCoord = function(coord) {
+		var pixel  =map.getPixelFromCoordinate(coord)
+        var feature = map.forEachFeatureAtPixel(pixel, function(feature) {
+          return feature;
+        });
+		if (feature) {		
+          alert(feature.getId() + ':' + feature.get('name')) ;
+        } else {
+		 alert('Nothing');
+        }
+
+      };
+    </script>
+  </body>
+</html>
